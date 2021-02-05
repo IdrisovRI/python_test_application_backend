@@ -1,0 +1,40 @@
+Backend Test Job
+Develop an asynchronous server that sends current currency values ​​to the websocket
+steam.
+Receiving and storing points
+We receive and store points in memory. The point is the asset id, timestamp time and value -
+asset value (currency pair).
+Create a list of assets (choose the database at your discretion)
+id symbol
+1 EURUSD
+2 USDJPY
+3 GBPUSD
+4 AUDUSD
+5 USDCAD
+We get quotes by making a get-request every second:
+https://ratesjson.fxcm.com/DataDisplayer
+There are more assets than necessary, we take only EURUSD, USDJPY, GBPUSD, AUDUSD,
+USDCAD.
+From the received json, take the bid and ask fields, our quote value will be taken
+arithmetic mean between bid and ask:
+value = (bid + ask) 2
+The points must be stored in the database and, when requested, the points must be returned for the last 30 minutes. So
+Thus, for each asset there will be an array of points.
+Giving points to clients
+Expose a web socket on port 8080.
+1 The client connecting to the socket can request assets by sending a message
+{"action": "assets", "message": {}}
+In response, the server sends an array of assets:
+{"action": "assets", "message": {"assets": [{"id": 1, "name": "EURUSD"}, {"id": 2, "name": "USDJPY"} , {"id": 3, "nam
+e ":" GBPUSD "}, {" id ": 4," name ":" AUDUSD "}, {" id ": 5," name ":" USDCAD "}]}}
+2 To subscribe to quotes for the selected asset, the client sends a message:
+{"action": "subscribe", "message": {"assetId": 1}}
+After subscribing to the asset, the server sends points for the last 30 minutes and each
+second a new point. A client can only subscribe to 1 asset at a time (then
+if subscribe is sent again, the socket is flipped to a new asset)
+Example history (shortened to save space):
+{"message": {"points": [{"assetName": "EURUSD", "time": 1455883484, "assetId": 1, "value": 1.110481
+}, {"assetName": "EURUSD", "time": 1455883485, "assetId": 1, "value": 1.110948}, {"assetName": "EU
+RUSD "," time ": 1455883486," assetId ": 1," value ": 1.111122}]}," action ":" asset_history "}
+Json of the new point:
+{"message": {"assetName": "EURUSD", "time": 1453556718, "assetId": 1, "value": 1.079755}, "action": "point"}
